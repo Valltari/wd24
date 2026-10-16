@@ -63,16 +63,12 @@
     <button id="open" type="button">World24 열기</button>
   </main>
   <script>
-    const endpoint = 'https://api.github.com/repos/Valltari/world24-mapbriefing/contents/current.json?ref=main';
+    // Read the pointer from this Pages site. The old unauthenticated Contents
+    // API was limited to 60 requests per hour for an entire office public IP.
+    const endpoint = `./current.json?cacheBust=${Date.now()}`;
     const status = document.querySelector('#status');
     const openButton = document.querySelector('#open');
     let targetUrl = '';
-
-    function decodeBase64Utf8(value) {
-      const binary = atob(value.replace(/\s/g, ''));
-      const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
-      return new TextDecoder().decode(bytes);
-    }
 
     function isAllowedTarget(value) {
       try {
@@ -91,8 +87,7 @@
           headers: { Accept: 'application/vnd.github+json' }
         });
         if (!response.ok) throw new Error(`GitHub response ${response.status}`);
-        const file = await response.json();
-        const current = JSON.parse(decodeBase64Utf8(file.content));
+        const current = await response.json();
         if (!isAllowedTarget(current.url)) throw new Error('Invalid World24 address');
         targetUrl = current.url;
         status.textContent = '운영 중인 World24 화면으로 이동합니다.';
